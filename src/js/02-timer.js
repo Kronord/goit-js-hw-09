@@ -43,9 +43,9 @@ const myFlatPicker = flatpickr(refs.myInput, {
 class Timer {
     constructor({onTick}) {
         this.intervId = null;
-        // this.btnIsActive = false;
+        this.btnIsActive = false;
         this.onTick = onTick;
-    };
+    }
 
     start() {
         // if (this.btnIsActive) {
@@ -56,13 +56,40 @@ class Timer {
         this.intervId = setInterval(() => {
             const currentTime = Date.now();
             const timeDifference = myFlatPicker.selectedDates[0] - currentTime;
-            const { days, hours, minutes, seconds } = convertMs(timeDifference);
+            const { days, hours, minutes, seconds } = this.convertMs(timeDifference);
             this.onTick({ days, hours, minutes, seconds });
             if (`${days}:${hours}:${minutes}:${seconds}` === '00:00:00:00') {
-                stop(this.intervId);
+                this.stop(this.intervId);
                 // this.btnIsActive = false;
             };
         }, 1000);
+    }
+
+    convertMs(ms) {
+        // Number of milliseconds per unit of time
+        const second = 1000;
+        const minute = second * 60;
+        const hour = minute * 60;
+        const day = hour * 24;
+
+        // Remaining days
+        const days = this.pad(Math.floor(ms / day));
+        // Remaining hours
+        const hours = this.pad(Math.floor((ms % day) / hour));
+        // Remaining minutes
+        const minutes = this.pad(Math.floor(((ms % day) % hour) / minute));
+        // Remaining seconds
+        const seconds = this.pad(Math.floor((((ms % day) % hour) % minute) / second));
+
+        return { days, hours, minutes, seconds };
+    };
+
+    stop(p1) {
+        clearInterval(p1);
+    };
+
+    pad(value) {
+        return String(value).padStart(2, '0');
     };
 };
 
@@ -74,35 +101,9 @@ refs.startBtn.addEventListener('click', () => {
     timer.start();
 });
 
-function stop(p1) {
-    clearInterval(p1);
-};
-
-function pad(value) {
-    return String(value).padStart(2, '0');
-};
-
 function upgradeInterface({ days, hours, minutes, seconds }) {
         refs.daysValue.textContent = `${days}`;
         refs.hoursValue.textContent = `${hours}`;
         refs.minValue.textContent = `${minutes}`;
         refs.secValue.textContent = `${seconds}`;
-    };
-function convertMs(ms) {
-        // Number of milliseconds per unit of time
-        const second = 1000;
-        const minute = second * 60;
-        const hour = minute * 60;
-        const day = hour * 24;
-
-        // Remaining days
-        const days = pad(Math.floor(ms / day));
-        // Remaining hours
-        const hours = pad(Math.floor((ms % day) / hour));
-        // Remaining minutes
-        const minutes = pad(Math.floor(((ms % day) % hour) / minute));
-        // Remaining seconds
-        const seconds = pad(Math.floor((((ms % day) % hour) % minute) / second));
-
-        return { days, hours, minutes, seconds };
-    };
+};
